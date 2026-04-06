@@ -10,9 +10,8 @@ public class TestMove : MonoBehaviour
     private Vector2 input;
     private Vector2 lastMoveDir;
 
-    // teleport lock (INSIDE PLAYER)
-    public bool canTeleport = true;
-    public float lockTimer = 0f;
+  
+
 
     void Awake()
     {
@@ -21,16 +20,6 @@ public class TestMove : MonoBehaviour
 
     void Update()
     {
-        // teleport cooldown
-        if (!canTeleport)
-        {
-            lockTimer -= Time.deltaTime;
-
-            if (lockTimer <= 0f)
-                canTeleport = true;
-        }
-
-        // input
         input.x = Input.GetAxisRaw("Horizontal");
         input.y = Input.GetAxisRaw("Vertical");
 

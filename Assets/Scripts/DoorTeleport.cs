@@ -9,20 +9,20 @@ public class DoorTeleport : MonoBehaviour
     public GameObject spaceIconPrefab; // prefab, NOT scene object
     public float iconYOffset = 1.5f;
 
-    private TestMove playerInside;
+    private TestMove pDetected;
     private GameObject spawnedIcon;
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;
 
-        playerInside = other.GetComponent<TestMove>();
+        pDetected = other.GetComponent<TestMove>();
 
-        if (playerInside != null && spaceIconPrefab != null)
+        if (pDetected != null && spaceIconPrefab != null)
         {
             spawnedIcon = Instantiate(
                 spaceIconPrefab,
-                playerInside.transform.position + Vector3.up * iconYOffset,
+                pDetected.transform.position + Vector3.up * iconYOffset,
                 Quaternion.identity
             );
         }
@@ -32,9 +32,9 @@ public class DoorTeleport : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        if (other.GetComponent<TestMove>() == playerInside)
+        if (other.GetComponent<TestMove>() == pDetected)
         {
-            playerInside = null;
+            pDetected = null;
 
             if (spawnedIcon != null)
                 Destroy(spawnedIcon);
@@ -43,25 +43,23 @@ public class DoorTeleport : MonoBehaviour
 
     void Update()
     {
-        if (playerInside == null) return;
+        if (pDetected == null) return;
 
-        // keep icon above player
-        if (spawnedIcon != null)
         {
             spawnedIcon.transform.position =
-                playerInside.transform.position + Vector3.up * iconYOffset;
+                pDetected.transform.position + Vector3.up * iconYOffset;
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Vector3 oldPos = playerInside.transform.position;
+            Vector3 oldPos = pDetected.transform.position;
 
-            playerInside.transform.position = teleportTarget.position;
+            pDetected.transform.position = teleportTarget.position;
 
-            if (vcam != null)
+       
                 vcam.OnTargetObjectWarped(
-                    playerInside.transform,
-                    playerInside.transform.position - oldPos
+                    pDetected.transform,
+                    pDetected.transform.position - oldPos
                 );
         }
     }
