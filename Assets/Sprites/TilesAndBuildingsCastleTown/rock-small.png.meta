@@ -5,7 +5,7 @@ AssetOrigin:
   productId: 88293
   packageName: Tiny RPG Town Environment
   packageVersion: 1.0
-  assetPath: Assets/TinyRPGTown/Artwork/Sprites/rock-small.png
+  assetPath: Assets/Sprites/TilesAndBuildingsCastleTown/rock-small.png
   uploadId: 174841
 TextureImporter:
   internalIDToNameTable: []

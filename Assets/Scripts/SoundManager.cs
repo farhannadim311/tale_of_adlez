@@ -37,6 +37,7 @@ public class soundManager : MonoBehaviour
 
         switch (scene.name)
         {
+            
             case "Scene_VillageOverworld":
                 newClip = VillageOverWorldMusic;
                 break;

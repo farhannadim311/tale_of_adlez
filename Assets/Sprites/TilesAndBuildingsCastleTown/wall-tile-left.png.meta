@@ -5,7 +5,7 @@ AssetOrigin:
   productId: 88293
   packageName: Tiny RPG Town Environment
   packageVersion: 1.0
-  assetPath: Assets/TinyRPGTown/Artwork/Sprites/wall-tile-left.png
+  assetPath: Assets/Sprites/TilesAndBuildingsCastleTown/wall-tile-left.png
   uploadId: 174841
 TextureImporter:
   internalIDToNameTable: []
