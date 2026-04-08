@@ -4,6 +4,8 @@ public class NPCTalk : MonoBehaviour
 {
     bool playerDetect = false;
 
+    public bool debugCompleteQuest;
+
     public GameObject PressButton;
     public GameObject DialougeCanvas;
 
@@ -33,16 +35,24 @@ public class NPCTalk : MonoBehaviour
 
     void Update()
     {
+        // If dialogue is open
         if (DialougeCanvas.activeSelf)
         {
             if (Input.GetKeyDown(KeyCode.B))
             {
                 DialougeCanvas.SetActive(false);
                 Time.timeScale = 1f;
+
+                // COMPLETE QUEST ONCE
+                if (debugCompleteQuest)
+                {
+                    GameManager.Instance.CompleteQuest();
+                }
             }
             return;
         }
 
+        // Player nearby
         if (playerDetect)
         {
             PressButton.SetActive(true);
