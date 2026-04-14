@@ -176,7 +176,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55071f73f0bd04c54a551879d4d00a78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  speed: 4
+  speed: 4.5
   roamSpeed: 1.5
   roamRadius: 6
   roamChangeTime: 2
