@@ -6,12 +6,15 @@ public class TestMove : MonoBehaviour
     public Animator anim;
     public GameObject swordPrefab;
 
+    public float attackCooldown = 0.5f; // NEW
+
     private Rigidbody2D rb;
     private Vector2 input;
-    private Vector2 lastMoveDir = Vector2.up; // START FACING UP
+    private Vector2 lastMoveDir = Vector2.up;
 
     private bool isAttacking;
     private float attackLockTimer;
+    private float attackCooldownTimer; // NEW
 
     void Awake()
     {
@@ -20,6 +23,9 @@ public class TestMove : MonoBehaviour
 
     void Update()
     {
+        // cooldown timer
+        attackCooldownTimer -= Time.deltaTime;
+
         // Input
         input.x = Input.GetAxisRaw("Horizontal");
         input.y = Input.GetAxisRaw("Vertical");
@@ -36,11 +42,12 @@ public class TestMove : MonoBehaviour
         anim.SetFloat("MoveX", lastMoveDir.x);
         anim.SetFloat("MoveY", lastMoveDir.y);
 
-        // Attack
-        if (Input.GetKeyDown(KeyCode.M) && !isAttacking)
+        // Attack (NOW WITH COOLDOWN)
+        if (Input.GetKeyDown(KeyCode.M) && !isAttacking && attackCooldownTimer <= 0f)
         {
             isAttacking = true;
             attackLockTimer = 0.35f;
+            attackCooldownTimer = attackCooldown;
 
             int dir = GetAttackDir();
             anim.SetInteger("AttackDir", dir);
@@ -51,7 +58,6 @@ public class TestMove : MonoBehaviour
 
             GameObject sword = Instantiate(swordPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
 
-            // Render in front if attacking up
             SpriteRenderer sr = sword.GetComponent<SpriteRenderer>();
             if (sr != null && dir == 3)
             {
@@ -59,7 +65,7 @@ public class TestMove : MonoBehaviour
             }
         }
 
-        // Attack cooldown
+        // Attack lock timer
         if (isAttacking)
         {
             attackLockTimer -= Time.deltaTime;
@@ -84,8 +90,8 @@ public class TestMove : MonoBehaviour
     int GetAttackDir()
     {
         if (Mathf.Abs(lastMoveDir.x) > Mathf.Abs(lastMoveDir.y))
-            return lastMoveDir.x > 0 ? 2 : 1; // right / left
+            return lastMoveDir.x > 0 ? 2 : 1;
 
-        return lastMoveDir.y > 0 ? 3 : 0; // up / down
+        return lastMoveDir.y > 0 ? 3 : 0;
     }
-}//
+}

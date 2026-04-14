@@ -25,6 +25,9 @@ public class DoorTeleport : MonoBehaviour
                 pDetected.transform.position + Vector3.up * iconYOffset,
                 Quaternion.identity
             );
+
+            spawnedIcon.GetComponent<SpriteRenderer>().sortingOrder = 10;
+            
         }
     }
 

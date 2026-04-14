@@ -31,15 +31,15 @@ public class GameManager : MonoBehaviour
             volumeProfile.TryGet(out colorAdjustments);
         }
 
-        colorAdjustments.saturation.value = -100f;;
+        colorAdjustments.saturation.value = -80f;;
     }
 
-    public void CompleteQuest()
+    public void CompleteQuest(float questNo)
     {
-        questState = 2;
-        questNo++;
+        questState = 0; //start new quest cycle
+        this.questNo++; //increment quest number
 
-        IncreaseSaturation(50f);
+        IncreaseSaturation(20f);
     }
 
     void IncreaseSaturation(float amount)
