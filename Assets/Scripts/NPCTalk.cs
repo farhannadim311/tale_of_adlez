@@ -7,16 +7,17 @@ public class NPCTalk : MonoBehaviour
     public bool debugCompleteAllQuest;
     public int questNumber;
 
-
     public GameObject PressButton;
-    public GameObject DialougeCanvas; //REGULAR DIALOUGE
-    public GameObject GiveQuestCanvas; //Give a quest
-    public GameObject QuestCompleteCanvas; //complete a quest dialouge
+    public GameObject DialougeCanvas;
+    public GameObject GiveQuestCanvas;
+    public GameObject QuestCompleteCanvas;
 
     void Start()
     {
         PressButton.SetActive(false);
         DialougeCanvas.SetActive(false);
+        GiveQuestCanvas.SetActive(false);
+        QuestCompleteCanvas.SetActive(false);
     }
 
     void OnCollisionEnter2D(Collision2D other)
@@ -34,12 +35,16 @@ public class NPCTalk : MonoBehaviour
             playerDetect = false;
             PressButton.SetActive(false);
             DialougeCanvas.SetActive(false);
+            GiveQuestCanvas.SetActive(false);
+            QuestCompleteCanvas.SetActive(false);
         }
     }
 
     void Update()
     {
-        // If dialogue is open
+        // =========================
+        // CLOSE DIALOGUE
+        // =========================
         if (DialougeCanvas.activeSelf || GiveQuestCanvas.activeSelf || QuestCompleteCanvas.activeSelf)
         {
             if (Input.GetKeyDown(KeyCode.B))
@@ -49,44 +54,61 @@ public class NPCTalk : MonoBehaviour
                 QuestCompleteCanvas.SetActive(false);
                 Time.timeScale = 1f;
 
-                // COMPLETE QUEST ONCE
                 if (debugCompleteAllQuest)
                 {
                     GameManager.Instance.CompleteQuest(questNumber);
                 }
-
             }
             return;
         }
 
-        // Player nearby
+        // =========================
+        // INTERACTION
+        // =========================
         if (playerDetect)
         {
             PressButton.SetActive(true);
 
-            if (Input.GetKeyDown(KeyCode.Space)){
-                if(questNumber != GameManager.Instance.questNo) //normal dialogue
-                {
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
                 PressButton.SetActive(false);
-                DialougeCanvas.SetActive(true);
-                Time.timeScale = 0f;
+
+                // =========================
+                // NORMAL DIALOGUE
+                // =========================
+                if (questNumber != GameManager.Instance.questNo)
+                {
+                    DialougeCanvas.SetActive(true);
+                    Time.timeScale = 0f;
                 }
 
-                if(questNumber == GameManager.Instance.questNo && GameManager.Instance.questState == 0) //give quest
+                // =========================
+                // QUEST ACCEPT / ACTIVE
+                // =========================
+                else if (GameManager.Instance.questState == 0 || GameManager.Instance.questState == 1)
                 {
-                    PressButton.SetActive(false);
                     GiveQuestCanvas.SetActive(true);
                     Time.timeScale = 0f;
-                    GameManager.Instance.questState = 1; //quest accepted
-                }
-                if(questNumber == GameManager.Instance.questNo && GameManager.Instance.questState == 2) //complete quest
-                {
-                    PressButton.SetActive(false);
-                    QuestCompleteCanvas.SetActive(true);
-                    Time.timeScale = 0f;
-                    GameManager.Instance.CompleteQuest(questNumber);
+
+                    // ONLY ON FIRST ACCEPT
+                    if (GameManager.Instance.questState == 0)
+                    {
+                        GameManager.Instance.questState = 1;
+                        SoundManager.Instance.PlayQuestObtained();
+                    }
                 }
 
+                // =========================
+                // QUEST COMPLETE
+                // =========================
+                else if (GameManager.Instance.questState == 2)
+                {
+                    QuestCompleteCanvas.SetActive(true);
+                    Time.timeScale = 0f;
+
+                    SoundManager.Instance.PlayQuestCompleted();
+                    GameManager.Instance.CompleteQuest(questNumber);
+                }
             }
         }
     }
