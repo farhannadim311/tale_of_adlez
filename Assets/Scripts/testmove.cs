@@ -38,13 +38,14 @@ public class TestMove : MonoBehaviour
             lastMoveDir = input.normalized;
         }
 
-        // ALWAYS update animator with last direction
+        
         anim.SetFloat("MoveX", lastMoveDir.x);
         anim.SetFloat("MoveY", lastMoveDir.y);
 
         // Attack (NOW WITH COOLDOWN)
         if (Input.GetKeyDown(KeyCode.M) && !isAttacking && attackCooldownTimer <= 0f)
         {
+            SoundManager.Instance.PlaySwordSwing();
             isAttacking = true;
             attackLockTimer = 0.35f;
             attackCooldownTimer = attackCooldown;

@@ -47,6 +47,7 @@ public class Pumpkin : MonoBehaviour
 
                 if (GameManager.Instance.questState == 2)
                 {
+                    SoundManager.Instance.PlayQuestProgress();
                     GameObject.Destroy(gameObject);
                 }
             }

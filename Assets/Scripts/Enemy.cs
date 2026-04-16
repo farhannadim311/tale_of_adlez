@@ -22,18 +22,25 @@ public class Enemy : MonoBehaviour
     public float knockbackForce = 5f;
     public float knockbackTime = 0.2f;
 
-    private Vector3 knockbackVelocity;
+    private Vector2 knockbackVelocity;
     private float knockbackTimer;
 
-    void Update()
+    private Rigidbody2D rb;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
+
+    void FixedUpdate()
     {
         // =========================
-        // KNOCKBACK OVERRIDE
+        // KNOCKBACK
         // =========================
         if (knockbackTimer > 0)
         {
-            transform.position += knockbackVelocity * Time.deltaTime;
-            knockbackTimer -= Time.deltaTime;
+            rb.MovePosition(rb.position + knockbackVelocity * Time.fixedDeltaTime);
+            knockbackTimer -= Time.fixedDeltaTime;
             return;
         }
 
@@ -44,18 +51,20 @@ public class Enemy : MonoBehaviour
         {
             anim.SetBool("chasing", true);
 
-            Vector3 direction = player.position - transform.position;
+            Vector2 direction = player.position - transform.position;
 
             if (direction.x > 0)
                 transform.localScale = new Vector3(7, 7, 1);
             else if (direction.x < 0)
                 transform.localScale = new Vector3(-7, 7, 1);
 
-            transform.position = Vector3.MoveTowards(
-                transform.position,
+            Vector2 newPos = Vector2.MoveTowards(
+                rb.position,
                 player.position,
-                speed * Time.deltaTime
+                speed * Time.fixedDeltaTime
             );
+
+            rb.MovePosition(newPos);
         }
         else
         {
@@ -64,7 +73,7 @@ public class Enemy : MonoBehaviour
             // =========================
             anim.SetBool("chasing", false);
 
-            roamTimer -= Time.deltaTime;
+            roamTimer -= Time.fixedDeltaTime;
 
             if (roamTimer <= 0f)
             {
@@ -77,18 +86,20 @@ public class Enemy : MonoBehaviour
                 roamTimer = roamChangeTime;
             }
 
-            Vector3 direction = roamTarget - transform.position;
+            Vector2 direction = roamTarget - transform.position;
 
             if (direction.x > 0)
                 transform.localScale = new Vector3(7, 7, 1);
             else if (direction.x < 0)
                 transform.localScale = new Vector3(-7, 7, 1);
 
-            transform.position = Vector3.MoveTowards(
-                transform.position,
+            Vector2 newRoamPos = Vector2.MoveTowards(
+                rb.position,
                 roamTarget,
-                roamSpeed * Time.deltaTime
+                roamSpeed * Time.fixedDeltaTime
             );
+
+            rb.MovePosition(newRoamPos);
         }
 
         // =========================
@@ -96,6 +107,7 @@ public class Enemy : MonoBehaviour
         // =========================
         if (damageTaken >= health)
         {
+            GameManager.Instance.RegisterEnemyKill();
             Destroy(gameObject);
         }
     }
@@ -116,8 +128,8 @@ public class Enemy : MonoBehaviour
     {
         if (other.CompareTag("Weapon") && player != null && other.IsTouching(GetComponent<Collider2D>()))
         {
-            // FIXED KNOCKBACK DIRECTION
-            Vector3 dir = (transform.position - player.position).normalized;
+            SoundManager.Instance.PlayEnemyHit();
+            Vector2 dir = (transform.position - player.position).normalized;
 
             knockbackVelocity = dir * knockbackForce;
             knockbackTimer = knockbackTime;

@@ -6,7 +6,13 @@ public class DoorTeleport : MonoBehaviour
     public Transform teleportTarget;
     public CinemachineCamera vcam;
 
-    public GameObject spaceIconPrefab; // prefab, NOT scene object
+    public int MusicSignal;
+    // 0 = town
+    // 1 = quest
+
+    public bool isADoor; // NEW FLAG
+
+    public GameObject spaceIconPrefab;
     public float iconYOffset = 1.5f;
 
     private TestMove pDetected;
@@ -27,7 +33,6 @@ public class DoorTeleport : MonoBehaviour
             );
 
             spawnedIcon.GetComponent<SpriteRenderer>().sortingOrder = 10;
-            
         }
     }
 
@@ -48,22 +53,26 @@ public class DoorTeleport : MonoBehaviour
     {
         if (pDetected == null) return;
 
-        {
-            spawnedIcon.transform.position =
-                pDetected.transform.position + Vector3.up * iconYOffset;
-        }
+        spawnedIcon.transform.position =
+            pDetected.transform.position + Vector3.up * iconYOffset;
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            if (isADoor)
+            {
+                SoundManager.Instance.PlayDoorOpen();
+            }
+
             Vector3 oldPos = pDetected.transform.position;
+
+            SoundManager.Instance.SetMusicState(MusicSignal);
 
             pDetected.transform.position = teleportTarget.position;
 
-       
-                vcam.OnTargetObjectWarped(
-                    pDetected.transform,
-                    pDetected.transform.position - oldPos
-                );
+            vcam.OnTargetObjectWarped(
+                pDetected.transform,
+                pDetected.transform.position - oldPos
+            );
         }
     }
 }

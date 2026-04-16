@@ -4,7 +4,7 @@ public class DetectionRadius : MonoBehaviour
 {
     private Enemy enemy;
 
-    void Awake() // better than Start for references
+    void Awake() 
     {
         enemy = GetComponentInParent<Enemy>();
 
