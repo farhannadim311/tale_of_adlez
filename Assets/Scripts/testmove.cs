@@ -43,7 +43,9 @@ public class TestMove : MonoBehaviour
         anim.SetFloat("MoveX", lastMoveDir.x);
         anim.SetFloat("MoveY", lastMoveDir.y);
 
-        // Sword attack
+        // =========================
+        // SWORD ATTACK
+        // =========================
         if (Input.GetKeyDown(KeyCode.M) && !isAttacking && attackCooldownTimer <= 0f)
         {
             SoundManager.Instance.PlaySwordSwing();
@@ -57,7 +59,11 @@ public class TestMove : MonoBehaviour
             Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.3f;
             float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 180f;
 
-            GameObject sword = Instantiate(swordPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
+            GameObject sword = Instantiate(
+                swordPrefab,
+                spawnPos,
+                Quaternion.Euler(0, 0, angle)
+            );
 
             SpriteRenderer sr = sword.GetComponent<SpriteRenderer>();
             if (sr != null && dir == 3)
@@ -66,26 +72,35 @@ public class TestMove : MonoBehaviour
             }
         }
 
-        // Bow attack
+        // =========================
+        // BOW ATTACK
+        // =========================
         if (Input.GetKeyDown(KeyCode.N) && !isAttacking && attackCooldownTimer <= 0f)
         {
-
-            //Call Inventory function here to decrement 
             int dir = GetAttackDir();
 
             Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.65f;
             float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 90f;
 
-            activeBow = Instantiate(bowPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
+            activeBow = Instantiate(
+                bowPrefab,
+                spawnPos,
+                Quaternion.Euler(0, 0, angle)
+            );
 
             SpriteRenderer bowSR = activeBow.GetComponent<SpriteRenderer>();
+            if (bowSR != null)
             {
                 bowSR.sortingOrder = (dir == 3) ? 4 : 10;
             }
 
-            GameObject arrow = Instantiate(arrowPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
+            GameObject arrow = Instantiate(
+                arrowPrefab,
+                spawnPos,
+                Quaternion.Euler(0, 0, angle)
+            );
 
-            Arrow arrowScript = arrow.GetComponent<Arrow>();
+            ArrowShoot arrowScript = arrow.GetComponent<ArrowShoot>();
             if (arrowScript != null)
             {
                 arrowScript.SetDirection(lastMoveDir);
@@ -96,7 +111,9 @@ public class TestMove : MonoBehaviour
             attackCooldownTimer = attackCooldown;
         }
 
-        // attack lock timer (MUST be outside bow if)
+        // =========================
+        // ATTACK TIMER
+        // =========================
         if (isAttacking)
         {
             attackLockTimer -= Time.deltaTime;

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8928516646721339213}
   - component: {fileID: 5651978397617805827}
   - component: {fileID: 311979614090923742}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Bat
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -30,7 +30,7 @@ Transform:
   m_GameObject: {fileID: 3925075749223160340}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7.26678, y: 0.59584, z: 0}
+  m_LocalPosition: {x: 8.27999, y: -3.95412, z: 0}
   m_LocalScale: {x: 7, y: 7, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -224,7 +224,7 @@ GameObject:
   - component: {fileID: 2870887462155555379}
   - component: {fileID: 7307068727234029268}
   - component: {fileID: 6947402447040758147}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Detection
   m_TagString: Untagged
   m_Icon: {fileID: 0}

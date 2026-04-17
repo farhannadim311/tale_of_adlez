@@ -125,16 +125,16 @@ public class Enemy : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Weapon") && player != null && other.IsTouching(GetComponent<Collider2D>()))
-        {
-            SoundManager.Instance.PlayEnemyHit();
-            Vector2 dir = (transform.position - player.position).normalized;
+{
+    if (!other.CompareTag("Weapon")) return;
 
-            knockbackVelocity = dir * knockbackForce;
-            knockbackTimer = knockbackTime;
+    SoundManager.Instance.PlayEnemyHit();
 
-            damageTaken++;
-        }
-    }
+    Vector2 dir = (transform.position - other.transform.position).normalized;
+
+    knockbackVelocity = dir * knockbackForce;
+    knockbackTimer = knockbackTime;
+
+    damageTaken++;
+}
 }
