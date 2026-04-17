@@ -4,9 +4,14 @@ public class TestMove : MonoBehaviour
 {
     public float speed = 5f;
     public Animator anim;
-    public GameObject swordPrefab;
 
-    public float attackCooldown = 0.5f; // NEW
+    public GameObject swordPrefab;
+    public GameObject arrowPrefab;
+    public GameObject bowPrefab;
+
+    private GameObject activeBow;
+
+    public float attackCooldown = 0.5f;
 
     private Rigidbody2D rb;
     private Vector2 input;
@@ -14,7 +19,7 @@ public class TestMove : MonoBehaviour
 
     private bool isAttacking;
     private float attackLockTimer;
-    private float attackCooldownTimer; // NEW
+    private float attackCooldownTimer;
 
     void Awake()
     {
@@ -23,36 +28,31 @@ public class TestMove : MonoBehaviour
 
     void Update()
     {
-        // cooldown timer
         attackCooldownTimer -= Time.deltaTime;
 
-        // Input
         input.x = Input.GetAxisRaw("Horizontal");
         input.y = Input.GetAxisRaw("Vertical");
 
         anim.SetFloat("Speed", input.sqrMagnitude);
 
-        // Update facing direction ONLY when moving
         if (input.sqrMagnitude > 0.01f && !isAttacking)
         {
             lastMoveDir = input.normalized;
         }
 
-        
         anim.SetFloat("MoveX", lastMoveDir.x);
         anim.SetFloat("MoveY", lastMoveDir.y);
 
-        // Attack (NOW WITH COOLDOWN)
+        // Sword attack
         if (Input.GetKeyDown(KeyCode.M) && !isAttacking && attackCooldownTimer <= 0f)
         {
             SoundManager.Instance.PlaySwordSwing();
+
             isAttacking = true;
             attackLockTimer = 0.35f;
             attackCooldownTimer = attackCooldown;
 
             int dir = GetAttackDir();
-            anim.SetInteger("AttackDir", dir);
-            anim.SetTrigger("Attack");
 
             Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.3f;
             float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 180f;
@@ -66,13 +66,50 @@ public class TestMove : MonoBehaviour
             }
         }
 
-        // Attack lock timer
+        // Bow attack
+        if (Input.GetKeyDown(KeyCode.N) && !isAttacking && attackCooldownTimer <= 0f)
+        {
+
+            //Call Inventory function here to decrement 
+            int dir = GetAttackDir();
+
+            Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.65f;
+            float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 90f;
+
+            activeBow = Instantiate(bowPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
+
+            SpriteRenderer bowSR = activeBow.GetComponent<SpriteRenderer>();
+            {
+                bowSR.sortingOrder = (dir == 3) ? 4 : 10;
+            }
+
+            GameObject arrow = Instantiate(arrowPrefab, spawnPos, Quaternion.Euler(0, 0, angle));
+
+            Arrow arrowScript = arrow.GetComponent<Arrow>();
+            if (arrowScript != null)
+            {
+                arrowScript.SetDirection(lastMoveDir);
+            }
+
+            isAttacking = true;
+            attackLockTimer = 0.35f;
+            attackCooldownTimer = attackCooldown;
+        }
+
+        // attack lock timer (MUST be outside bow if)
         if (isAttacking)
         {
             attackLockTimer -= Time.deltaTime;
+
             if (attackLockTimer <= 0f)
             {
                 isAttacking = false;
+
+                if (activeBow != null)
+                {
+                    Destroy(activeBow);
+                    activeBow = null;
+                }
             }
         }
     }
