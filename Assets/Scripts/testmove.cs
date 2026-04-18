@@ -1,4 +1,6 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class TestMove : MonoBehaviour
 {
@@ -8,6 +10,12 @@ public class TestMove : MonoBehaviour
     public GameObject swordPrefab;
     public GameObject arrowPrefab;
     public GameObject bowPrefab;
+    public TMP_Text HealthText;
+    public int health = 5;
+    public GameObject HealthUI;
+
+    public float damageCooldown = 1f;
+    private float invincibleTimer = 0f; 
 
     private GameObject activeBow;
 
@@ -25,9 +33,19 @@ public class TestMove : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
     }
+    void Start()
+    {
+    HealthUI.SetActive(true);
+    UpdateHealthUI();
+    }
 
     void Update()
     {
+        if (invincibleTimer > 0f)
+{
+    invincibleTimer -= Time.deltaTime;
+}
+       
         attackCooldownTimer -= Time.deltaTime;
 
         input.x = Input.GetAxisRaw("Horizontal");
@@ -77,6 +95,7 @@ public class TestMove : MonoBehaviour
         // =========================
         if (Input.GetKeyDown(KeyCode.N) && !isAttacking && attackCooldownTimer <= 0f)
         {
+            SoundManager.Instance.PlayArrowShoot();
             int dir = GetAttackDir();
 
             Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.65f;
@@ -149,4 +168,35 @@ public class TestMove : MonoBehaviour
 
         return lastMoveDir.y > 0 ? 3 : 0;
     }
+    void UpdateHealthUI()
+{
+    HealthText.text = "Health: " + health;
+}
+
+void OnCollisionStay2D(Collision2D other)
+{
+    if (!other.gameObject.CompareTag("Enemy")) return;
+    if (invincibleTimer > 0f) return;
+
+    Debug.Log("Player damaged by: " + other.gameObject.name);
+
+    health--;
+    SoundManager.Instance.PlayTakeDamage();
+    UpdateHealthUI();
+
+    invincibleTimer = damageCooldown;
+
+    if (health <= 0)
+    {
+        Debug.Log("Player dead");
+        Die();
+    }
+}
+
+void Die()
+    {
+        SceneManager.LoadScene("GameOver");
+
+    }
+
 }

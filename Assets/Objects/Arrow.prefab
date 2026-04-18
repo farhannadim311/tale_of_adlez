@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8823988694766142778}
   m_Layer: 6
   m_Name: Arrow
-  m_TagString: Weapon
+  m_TagString: Arrow
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   speed: 10
+  lifetime: 5
 --- !u!212 &4183017176022222405
 SpriteRenderer:
   serializedVersion: 2

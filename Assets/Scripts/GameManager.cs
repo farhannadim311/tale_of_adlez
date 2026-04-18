@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -24,17 +25,6 @@ public class GameManager : MonoBehaviour
 
     public QuestTwo questTwoUI;
 
-   public void RegisterEnemyKill()
-{
-    enemiesKilled++;
-
-    if (questNo == 1 && questState == 1)
-    {
-        if (questTwoUI != null)
-            questTwoUI.AddKill();
-    }
-}
-
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -46,42 +36,72 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Try to get ColorAdjustments from profile
+        SetupColorAdjustments();
+    }
+
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        SetupColorAdjustments();
+    }
+
+    void SetupColorAdjustments()
+    {
         if (volumeProfile != null)
         {
             volumeProfile.TryGet(out colorAdjustments);
-        }
 
-        colorAdjustments.saturation.value = -80f;;
+            if (colorAdjustments != null)
+            {
+                colorAdjustments.saturation.value = -80f;
+            }
+        }
+    }
+
+    public void RegisterEnemyKill()
+    {
+        enemiesKilled++;
+
+        if (questNo == 1 && questState == 1)
+        {
+            if (questTwoUI != null)
+                questTwoUI.AddKill();
+        }
     }
 
     void Update()
-{
-
-    if (Input.GetKeyDown(KeyCode.P))
+    {
+        if (Input.GetKeyDown(KeyCode.P))
         {
             if (isPaused) Resume();
             else Pause();
         }
 
-    if (batsSlainPanel == null) return;
+        if (batsSlainPanel == null) return;
 
-    // show panel during quest 1 while it's active
-    if (questNo == 1 && questState == 1)
-    {
-        batsSlainPanel.SetActive(true);
+        if (questNo == 1 && questState == 1)
+        {
+            batsSlainPanel.SetActive(true);
+        }
+        else if (questNo >= 2)
+        {
+            batsSlainPanel.SetActive(false);
+        }
     }
-    // hide when quest advances past 1
-    else if (questNo >= 2)
-    {
-        batsSlainPanel.SetActive(false);
-    }
-}
 
     public void CompleteQuest(float questNo)
     {
-        questState = 0; //start new quest cycle
-        this.questNo++; //increment quest number
+        questState = 0;
+        this.questNo++;
 
         IncreaseSaturation(20f);
     }
@@ -94,7 +114,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-     void Pause()
+    void Pause()
     {
         pauseMenu.SetActive(true);
         Time.timeScale = 0f;
@@ -102,17 +122,16 @@ public class GameManager : MonoBehaviour
     }
 
     void Resume()
-{
-    if (InventoryPanel.activeSelf ||
-        ReturnToVillagePanel.activeSelf ||
-        HintPanel.activeSelf)
     {
-        return; 
-    }
+        if (InventoryPanel.activeSelf ||
+            ReturnToVillagePanel.activeSelf ||
+            HintPanel.activeSelf)
+        {
+            return;
+        }
 
-    pauseMenu.SetActive(false);
-    Time.timeScale = 1f;
-    isPaused = false;
-}
-    
+        pauseMenu.SetActive(false);
+        Time.timeScale = 1f;
+        isPaused = false;
+    }
 }

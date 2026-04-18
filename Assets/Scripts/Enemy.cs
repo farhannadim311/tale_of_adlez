@@ -124,9 +124,9 @@ public class Enemy : MonoBehaviour
         player = null;
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+  void OnTriggerEnter2D(Collider2D other)
 {
-    if (!other.CompareTag("Weapon")) return;
+    if (!other.CompareTag("Weapon") && !other.CompareTag("Arrow")) return;
 
     SoundManager.Instance.PlayEnemyHit();
 
