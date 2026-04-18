@@ -51,6 +51,25 @@ public class Hints : MonoBehaviour
             newText = "Great Job! \n\n Return to the gardener to complete the quest!";
         }
 
+
+
+
+
+
+        //QUEST 3 HINTS
+        else if (GameManager.Instance.questNo == 2 && GameManager.Instance.questState == 0)
+        {
+            newText = "Try poking around the inn and talking to one of the visitors staying there.";
+        }
+        else if (GameManager.Instance.questNo == 2 && GameManager.Instance.questState == 1)
+        {
+            newText = "Go back to the Wilderness and Shoot the 3 totems with your arrows!";
+        }
+        else if (GameManager.Instance.questNo == 2 && GameManager.Instance.questState == 2)
+        {
+            newText = "Great Job! \n\n Return to the inn visitor to complete the quest!";
+        }
+
         hintText.text = newText;
     }
 }

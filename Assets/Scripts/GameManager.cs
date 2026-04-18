@@ -39,6 +39,16 @@ public class GameManager : MonoBehaviour
         SetupColorAdjustments();
     }
 
+    public void BindVolume(Volume v)
+{
+    if (v == null) return;
+
+    if (v.profile != null && v.profile.TryGet(out colorAdjustments))
+    {
+        colorAdjustments.saturation.value = -80f;
+    }
+}
+
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
