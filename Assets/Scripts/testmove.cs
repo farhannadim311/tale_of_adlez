@@ -10,12 +10,16 @@ public class TestMove : MonoBehaviour
     public GameObject swordPrefab;
     public GameObject arrowPrefab;
     public GameObject bowPrefab;
+    public GameObject bombPrefab;
+    public GameObject healParticles;
+
     public TMP_Text HealthText;
-    public int health = 5;
+    public int health = 8;
+    public int maxHealth = 8;
     public GameObject HealthUI;
 
     public float damageCooldown = 1f;
-    private float invincibleTimer = 0f; 
+    private float invincibleTimer = 0f;
 
     private GameObject activeBow;
 
@@ -25,7 +29,7 @@ public class TestMove : MonoBehaviour
     private Vector2 input;
     private Vector2 lastMoveDir = Vector2.up;
 
-    private bool isAttacking;
+    private bool currentlyAtkng;
     private float attackLockTimer;
     private float attackCooldownTimer;
 
@@ -33,126 +37,186 @@ public class TestMove : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
     }
+
     void Start()
     {
-    HealthUI.SetActive(true);
-    UpdateHealthUI();
+        HealthUI.SetActive(true);
+        UpdateHealthUI();
     }
 
     void Update()
     {
-        if (invincibleTimer > 0f)
-{
-    invincibleTimer -= Time.deltaTime;
-}
-       
-        attackCooldownTimer -= Time.deltaTime;
+        TimersI();
+        Movement();
+        AttackInputs(); 
 
+        //add bomb
+        DropBomb();
+
+
+        TryDrinkPotion();
+        AttackLocking();
+    }
+
+    void TimersI()
+    {
+        if (invincibleTimer > 0f)
+            invincibleTimer -= Time.deltaTime;
+
+        attackCooldownTimer -= Time.deltaTime;
+    }
+
+    void Movement()
+    {
         input.x = Input.GetAxisRaw("Horizontal");
         input.y = Input.GetAxisRaw("Vertical");
 
         anim.SetFloat("Speed", input.sqrMagnitude);
 
-        if (input.sqrMagnitude > 0.01f && !isAttacking)
-        {
+        if (input.sqrMagnitude > 0.01f && !currentlyAtkng)
             lastMoveDir = input.normalized;
-        }
 
         anim.SetFloat("MoveX", lastMoveDir.x);
         anim.SetFloat("MoveY", lastMoveDir.y);
+    }
 
-        // =========================
-        // SWORD ATTACK
-        // =========================
-        if (Input.GetKeyDown(KeyCode.M) && !isAttacking && attackCooldownTimer <= 0f)
+    void AttackInputs()
+    {
+        if (currentlyAtkng || attackCooldownTimer > 0f)
+            return;
+
+        if (Input.GetKeyDown(KeyCode.M))
         {
-            SoundManager.Instance.PlaySwordSwing();
-
-            isAttacking = true;
-            attackLockTimer = 0.35f;
-            attackCooldownTimer = attackCooldown;
-
-            int dir = GetAttackDir();
-
-            Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.3f;
-            float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 180f;
-
-            GameObject sword = Instantiate(
-                swordPrefab,
-                spawnPos,
-                Quaternion.Euler(0, 0, angle)
-            );
-
-            SpriteRenderer sr = sword.GetComponent<SpriteRenderer>();
-            if (sr != null && dir == 3)
-            {
-                sr.sortingOrder = 4;
-            }
+            SwordAttack();
+            return;
         }
 
-        // =========================
-        // BOW ATTACK
-        // =========================
-        if (Input.GetKeyDown(KeyCode.N) && !isAttacking && attackCooldownTimer <= 0f)
+        if (Input.GetKeyDown(KeyCode.N))
         {
-            SoundManager.Instance.PlayArrowShoot();
-            int dir = GetAttackDir();
-
-            Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.65f;
-            float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 90f;
-
-            activeBow = Instantiate(
-                bowPrefab,
-                spawnPos,
-                Quaternion.Euler(0, 0, angle)
-            );
-
-            SpriteRenderer bowSR = activeBow.GetComponent<SpriteRenderer>();
-            if (bowSR != null)
-            {
-                bowSR.sortingOrder = (dir == 3) ? 4 : 10;
-            }
-
-            GameObject arrow = Instantiate(
-                arrowPrefab,
-                spawnPos,
-                Quaternion.Euler(0, 0, angle)
-            );
-
-            ArrowShoot arrowScript = arrow.GetComponent<ArrowShoot>();
-            if (arrowScript != null)
-            {
-                arrowScript.SetDirection(lastMoveDir);
-            }
-
-            isAttacking = true;
-            attackLockTimer = 0.35f;
-            attackCooldownTimer = attackCooldown;
+            BowAttack();
         }
+    }
 
-        // =========================
-        // ATTACK TIMER
-        // =========================
-        if (isAttacking)
+    void SwordAttack()
+    {
+        SoundManager.Instance.PlaySwordSwing();
+        currentlyAtkng = true;
+        attackLockTimer = 0.35f;
+        attackCooldownTimer = attackCooldown;
+
+        bool facingUp = lastMoveDir.y > 0 && Mathf.Abs(lastMoveDir.y) > Mathf.Abs(lastMoveDir.x);
+
+        Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.3f;
+        float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 180f;
+
+        GameObject sword = Instantiate(
+            swordPrefab,
+            spawnPos,
+            Quaternion.Euler(0, 0, angle)
+        );
+
+        SpriteRenderer sr = sword.GetComponent<SpriteRenderer>();
+            sr.sortingOrder = facingUp ? 4 : sr.sortingOrder; //set sorting order to 4 if facing up to make it look "behind" the player
+    }
+
+    void BowAttack()
+    {
+        if (!InventoryManager.Instance.UseArrow())
+            return;
+
+        SoundManager.Instance.PlayArrowShoot();
+
+        bool facingUp = lastMoveDir.y > 0 && Mathf.Abs(lastMoveDir.y) > Mathf.Abs(lastMoveDir.x);
+
+        Vector3 spawnPos = transform.position + (Vector3)lastMoveDir * 0.65f;
+        float angle = Mathf.Atan2(lastMoveDir.y, lastMoveDir.x) * Mathf.Rad2Deg - 90f;
+
+        activeBow = Instantiate(
+            bowPrefab,
+            spawnPos,
+            Quaternion.Euler(0, 0, angle)
+        );
+
+        SpriteRenderer bowSR = activeBow.GetComponent<SpriteRenderer>();
+            bowSR.sortingOrder = facingUp ? 4 : bowSR.sortingOrder;
+
+        GameObject arrow = Instantiate(
+            arrowPrefab,
+            spawnPos,
+            Quaternion.Euler(0, 0, angle)
+        );
+
+        ArrowShoot arrowScript = arrow.GetComponent<ArrowShoot>();
+            arrowScript.SetDirection(lastMoveDir);
+
+        currentlyAtkng = true;
+        attackLockTimer = 0.35f;
+        attackCooldownTimer = attackCooldown;
+    }
+
+    void DropBomb()
+    {
+        if (Input.GetKeyDown(KeyCode.C) && Time.timeScale == 1)
+            BombPlace();
+    }
+
+    void BombPlace()
+    {
+        if (!InventoryManager.Instance.UseBomb())
+            return;
+
+        Instantiate(
+            bombPrefab,
+            transform.position,
+            transform.rotation
+        );
+    }
+
+    void TryDrinkPotion()
+    {
+        if (!Input.GetKeyDown(KeyCode.V))
+            return;
+
+        if (health >= maxHealth)
+            return;
+
+        if (InventoryManager.Instance.potions <= 0)
+            return;
+
+        InventoryManager.Instance.potions--;
+        Instantiate(healParticles, transform.position, transform.rotation);
+
+        health += 1;
+        if (health > maxHealth)
+            health = maxHealth;
+
+        SoundManager.Instance.PlayDrinkPotion();
+        UpdateHealthUI();
+
+        InventoryManager.Instance.SendMessage("UpdateUI");
+    }
+
+    void AttackLocking() //cooldown
+    {
+        if (!currentlyAtkng) return;
+
+        attackLockTimer -= Time.deltaTime;
+
+        if (attackLockTimer <= 0f)
         {
-            attackLockTimer -= Time.deltaTime;
+            currentlyAtkng = false;
 
-            if (attackLockTimer <= 0f)
+            if (activeBow != null)
             {
-                isAttacking = false;
-
-                if (activeBow != null)
-                {
-                    Destroy(activeBow);
-                    activeBow = null;
-                }
+                Destroy(activeBow);
+                activeBow = null;
             }
         }
     }
 
     void FixedUpdate()
     {
-        if (isAttacking)
+        if (currentlyAtkng)
         {
             rb.linearVelocity = Vector2.zero;
             return;
@@ -161,42 +225,76 @@ public class TestMove : MonoBehaviour
         rb.linearVelocity = input.normalized * speed;
     }
 
-    int GetAttackDir()
-    {
-        if (Mathf.Abs(lastMoveDir.x) > Mathf.Abs(lastMoveDir.y))
-            return lastMoveDir.x > 0 ? 2 : 1;
-
-        return lastMoveDir.y > 0 ? 3 : 0;
-    }
     void UpdateHealthUI()
-{
-    HealthText.text = "Health: " + health;
-}
-
-void OnCollisionStay2D(Collision2D other)
-{
-    if (!other.gameObject.CompareTag("Enemy")) return;
-    if (invincibleTimer > 0f) return;
-
-    Debug.Log("Player damaged by: " + other.gameObject.name);
-
-    health--;
-    SoundManager.Instance.PlayTakeDamage();
-    UpdateHealthUI();
-
-    invincibleTimer = damageCooldown;
-
-    if (health <= 0)
     {
-        Debug.Log("Player dead");
-        Die();
+        HealthText.text = "Health: " + health;
     }
-}
 
-void Die()
+    void TakeDamage(int amount)
+    {
+        if (invincibleTimer > 0f)
+            return;
+
+        health -= amount;
+        SoundManager.Instance.PlayTakeDamage();
+        UpdateHealthUI();
+
+        invincibleTimer = damageCooldown;
+
+        if (health <= 0)
+            Die();
+    }
+
+    void OnCollisionStay2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("Enemy"))
+            TakeDamage(1);
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("EnemyProj"))
+        {
+            TakeDamage(1);
+            Destroy(other.gameObject);
+            return;
+        }
+
+        if (other.CompareTag("bomb"))
+        {
+            SoundManager.Instance.PlayItemGet();
+            InventoryManager.Instance.AddBomb();
+            Destroy(other.gameObject);
+            return;
+        }
+
+        if (other.CompareTag("arrow"))
+        {
+            SoundManager.Instance.PlayItemGet();
+            InventoryManager.Instance.AddArrow();
+            Destroy(other.gameObject);
+            return;
+        }
+
+        if (other.CompareTag("health"))
+        {
+            SoundManager.Instance.PlayItemGet();
+            InventoryManager.Instance.AddPotion();
+            Destroy(other.gameObject);
+            return;
+        }
+
+        if (other.CompareTag("Coin"))
+        {
+            SoundManager.Instance.PlayItemGet();
+            InventoryManager.Instance.AddCoin();
+            Destroy(other.gameObject);
+            return;
+        }
+    }
+
+    void Die()
     {
         SceneManager.LoadScene("GameOver");
-
     }
-
 }

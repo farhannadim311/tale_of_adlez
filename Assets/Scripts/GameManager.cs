@@ -10,72 +10,37 @@ public class GameManager : MonoBehaviour
     public GameObject pauseMenu;
     public GameObject InventoryPanel;
     public GameObject ReturnToVillagePanel;
+    public GameObject controlsPanel;
     public GameObject HintPanel;
     public bool isPaused = false;
 
     public int questState = 0; // 0 = none, 1 = accepted, 2 = completed
-    public int questNo = 0;
-
-    public GameObject batsSlainPanel;
-    public VolumeProfile volumeProfile;
+    public int questNo = 0; //quests 0-3
 
     private ColorAdjustments colorAdjustments;
 
     public int enemiesKilled = 0;
 
-    public QuestTwo questTwoUI;
+    public QuestTwo questTwoUI; 
 
-    void Awake()
+   void Awake()
+{
+    if (Instance != null && Instance != this)
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        SetupColorAdjustments();
+        Destroy(gameObject);
+        return;
     }
+
+    Instance = this;
+}
 
     public void BindVolume(Volume v)
 {
-    if (v == null) return;
-
-    if (v.profile != null && v.profile.TryGet(out colorAdjustments))
+    if (v.profile.TryGet(out colorAdjustments))
     {
         colorAdjustments.saturation.value = -80f;
     }
 }
-
-    void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        SetupColorAdjustments();
-    }
-
-    void SetupColorAdjustments()
-    {
-        if (volumeProfile != null)
-        {
-            volumeProfile.TryGet(out colorAdjustments);
-
-            if (colorAdjustments != null)
-            {
-                colorAdjustments.saturation.value = -80f;
-            }
-        }
-    }
 
     public void RegisterEnemyKill()
     {
@@ -95,16 +60,13 @@ public class GameManager : MonoBehaviour
             if (isPaused) Resume();
             else Pause();
         }
-
-        if (batsSlainPanel == null) return;
-
         if (questNo == 1 && questState == 1)
         {
-            batsSlainPanel.SetActive(true);
+            questTwoUI.gameObject.SetActive(true);
         }
-        else if (questNo >= 2)
+       else if (questNo >= 2)
         {
-            batsSlainPanel.SetActive(false);
+            questTwoUI.gameObject.SetActive(false);
         }
     }
 
@@ -118,7 +80,6 @@ public class GameManager : MonoBehaviour
 
     void IncreaseSaturation(float amount)
     {
-        if (colorAdjustments != null)
         {
             colorAdjustments.saturation.value += amount;
         }
@@ -135,7 +96,7 @@ public class GameManager : MonoBehaviour
     {
         if (InventoryPanel.activeSelf ||
             ReturnToVillagePanel.activeSelf ||
-            HintPanel.activeSelf)
+            HintPanel.activeSelf || controlsPanel.activeSelf)
         {
             return;
         }

@@ -9,6 +9,18 @@ public class QuestTwo : MonoBehaviour
 
     void Update()
     {
+        // UI visibility logic (owns itself)
+        if (GameManager.Instance.questNo == 1 && GameManager.Instance.questState == 1)
+        {
+            if (!gameObject.activeSelf)
+                gameObject.SetActive(true);
+        }
+        else if (GameManager.Instance.questNo >= 2)
+        {
+            if (gameObject.activeSelf)
+                gameObject.SetActive(false);
+        }
+
         if (QuestCompleteNotifier.activeSelf)
         {
             Time.timeScale = 0f;
@@ -24,7 +36,7 @@ public class QuestTwo : MonoBehaviour
     public void AddKill()
     {
         batsKilled++;
-        batsSlainText.text = "Bats Slain: " + batsKilled;
+        batsSlainText.text = "Foes Slain: " + batsKilled;
 
         if (batsKilled >= 7)
         {

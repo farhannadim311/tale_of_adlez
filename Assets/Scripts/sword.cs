@@ -1,5 +1,5 @@
 using UnityEngine;
-
+//instantiate and rotate itself
 public class sword : MonoBehaviour
 {
 

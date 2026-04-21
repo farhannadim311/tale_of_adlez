@@ -1,5 +1,5 @@
 using UnityEngine;
-
+//child object of enemy objects to decide to chase player
 public class DetectionRadius : MonoBehaviour
 {
     private Enemy enemy;
@@ -7,24 +7,21 @@ public class DetectionRadius : MonoBehaviour
     void Awake() 
     {
         enemy = GetComponentInParent<Enemy>();
-
-        if (enemy == null)
-        {
-            Debug.LogError("Enemy not found on parent!");
-        }
     }
+
+    //notifiers to enemy
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player") && enemy != null)
+        if (other.CompareTag("Player"))
         {
-            enemy.PlayerEntered(other.transform);
+            enemy.PlayerEntered(other.transform); 
         }
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
-        if (other.CompareTag("Player") && enemy != null)
+        if (other.CompareTag("Player"))
         {
             enemy.PlayerLeft();
         }

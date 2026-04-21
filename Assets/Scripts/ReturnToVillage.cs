@@ -1,6 +1,6 @@
 using UnityEngine;
 using Unity.Cinemachine;
-
+//similar to door teleport snap camera back to position
 public class PlayerTeleport : MonoBehaviour
 {
     public Transform spawnPoint;
@@ -25,14 +25,14 @@ public class PlayerTeleport : MonoBehaviour
 
         player.transform.position = spawnPoint.position;
 
-        // UNPAUSE GAME
+        
         Time.timeScale = 1f;
 
         ReturnToVillagePanel.SetActive(false);
         PuaseMain.SetActive(false);
         SoundManager.Instance.SetMusicState(0);
 
-        // CAMERA FIX (same logic as your DoorTeleport script)
+        
         if (vcam != null)
         {
             vcam.OnTargetObjectWarped(

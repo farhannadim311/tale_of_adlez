@@ -1,5 +1,7 @@
 using UnityEngine;
 
+//normal NPCS should have quest of -1 to avoid conflict with quest giving NPCS
+
 public class NPCTalk : MonoBehaviour
 {
     bool playerDetect = false;
@@ -7,10 +9,17 @@ public class NPCTalk : MonoBehaviour
     public bool debugCompleteAllQuest;
     public int questNumber;
 
+    public bool Boss = false;
+
+    public GameObject BossFightObject;
+    public GameObject Blocker;
+
     public GameObject PressButton;
     public GameObject DialougeCanvas;
     public GameObject GiveQuestCanvas;
     public GameObject QuestCompleteCanvas;
+
+    private bool bossTriggered = false;
 
     void Start()
     {
@@ -23,9 +32,7 @@ public class NPCTalk : MonoBehaviour
     void OnCollisionEnter2D(Collision2D other)
     {
         if (other.gameObject.CompareTag("Player"))
-        {
             playerDetect = true;
-        }
     }
 
     void OnCollisionExit2D(Collision2D other)
@@ -33,6 +40,7 @@ public class NPCTalk : MonoBehaviour
         if (other.gameObject.CompareTag("Player"))
         {
             playerDetect = false;
+
             PressButton.SetActive(false);
             DialougeCanvas.SetActive(false);
             GiveQuestCanvas.SetActive(false);
@@ -42,9 +50,7 @@ public class NPCTalk : MonoBehaviour
 
     void Update()
     {
-        // =========================
-        // CLOSE DIALOGUE
-        // =========================
+        //close dialouge
         if (DialougeCanvas.activeSelf || GiveQuestCanvas.activeSelf || QuestCompleteCanvas.activeSelf)
         {
             if (Input.GetKeyDown(KeyCode.B))
@@ -52,19 +58,29 @@ public class NPCTalk : MonoBehaviour
                 DialougeCanvas.SetActive(false);
                 GiveQuestCanvas.SetActive(false);
                 QuestCompleteCanvas.SetActive(false);
+
                 Time.timeScale = 1f;
 
                 if (debugCompleteAllQuest)
-                {
                     GameManager.Instance.CompleteQuest(questNumber);
+
+               //boss trigger once
+                if (Boss && !bossTriggered)
+                {
+                    bossTriggered = true;
+
+                    if (BossFightObject != null)
+                        BossFightObject.SetActive(true);
+                        Blocker.SetActive(true);
+
+                    Destroy(gameObject);
                 }
             }
+
             return;
         }
 
-        // =========================
-        // INTERACTION
-        // =========================
+       //interact
         if (playerDetect)
         {
             PressButton.SetActive(true);
@@ -73,34 +89,22 @@ public class NPCTalk : MonoBehaviour
             {
                 PressButton.SetActive(false);
 
-                // =========================
-                // NORMAL DIALOGUE
-                // =========================
                 if (questNumber != GameManager.Instance.questNo)
                 {
                     DialougeCanvas.SetActive(true);
                     Time.timeScale = 0f;
                 }
-
-                // =========================
-                // QUEST ACCEPT / ACTIVE
-                // =========================
                 else if (GameManager.Instance.questState == 0 || GameManager.Instance.questState == 1)
                 {
                     GiveQuestCanvas.SetActive(true);
                     Time.timeScale = 0f;
 
-                    // ONLY ON FIRST ACCEPT
                     if (GameManager.Instance.questState == 0)
                     {
                         GameManager.Instance.questState = 1;
                         SoundManager.Instance.PlayQuestObtained();
                     }
                 }
-
-                // =========================
-                // QUEST COMPLETE
-                // =========================
                 else if (GameManager.Instance.questState == 2)
                 {
                     QuestCompleteCanvas.SetActive(true);
@@ -110,6 +114,10 @@ public class NPCTalk : MonoBehaviour
                     GameManager.Instance.CompleteQuest(questNumber);
                 }
             }
+        }
+        else
+        {
+            PressButton.SetActive(false);
         }
     }
 }

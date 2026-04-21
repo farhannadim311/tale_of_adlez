@@ -7,16 +7,23 @@ public class DoorTeleport : MonoBehaviour
     public CinemachineCamera vcam;
 
     public int MusicSignal;
-    // 0 = town
-    // 1 = quest
 
-    public bool isADoor; // NEW FLAG
+    public bool isADoor;
 
+    // bossroom stuff
+    public bool BossRoom;
+    public int requiredQuestNo = 3;
+    public int requiredQuestState = 1;
+    public GameObject lockedPanel;
+
+    // interaction
     public GameObject spaceIconPrefab;
-    public float iconYOffset = 1.5f;
+    public float iconYUp = 1.5f;
 
     private TestMove pDetected;
     private GameObject spawnedIcon;
+
+    private bool uiOpen = false;
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -24,16 +31,13 @@ public class DoorTeleport : MonoBehaviour
 
         pDetected = other.GetComponent<TestMove>();
 
-        if (pDetected != null && spaceIconPrefab != null)
-        {
-            spawnedIcon = Instantiate(
-                spaceIconPrefab,
-                pDetected.transform.position + Vector3.up * iconYOffset,
-                Quaternion.identity
-            );
+        spawnedIcon = Instantiate(
+            spaceIconPrefab,
+            pDetected.transform.position + Vector3.up * iconYUp,
+            transform.rotation
+        );
 
-            spawnedIcon.GetComponent<SpriteRenderer>().sortingOrder = 10;
-        }
+        spawnedIcon.GetComponent<SpriteRenderer>().sortingOrder = 10;
     }
 
     void OnTriggerExit2D(Collider2D other)
@@ -46,6 +50,8 @@ public class DoorTeleport : MonoBehaviour
 
             if (spawnedIcon != null)
                 Destroy(spawnedIcon);
+
+            CloseUI();
         }
     }
 
@@ -54,14 +60,36 @@ public class DoorTeleport : MonoBehaviour
         if (pDetected == null) return;
 
         spawnedIcon.transform.position =
-            pDetected.transform.position + Vector3.up * iconYOffset;
+            pDetected.transform.position + Vector3.up * iconYUp;
 
+        // close with B
+        if (uiOpen)
+        {
+            if (Input.GetKeyDown(KeyCode.B))
+                CloseUI();
+
+            return;
+        }
+
+        // interact
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (isADoor)
+            // BOSS ROOM CHECK 
+            if (BossRoom &&
+                (GameManager.Instance.questNo != requiredQuestNo ||
+                 GameManager.Instance.questState != requiredQuestState))
             {
-                SoundManager.Instance.PlayDoorOpen();
+                if (lockedPanel != null)
+                    lockedPanel.SetActive(true);
+
+                Time.timeScale = 0f;
+                uiOpen = true;
+
+                return;
             }
+
+            if (isADoor)
+                SoundManager.Instance.PlayDoorOpen();
 
             Vector3 oldPos = pDetected.transform.position;
 
@@ -74,5 +102,15 @@ public class DoorTeleport : MonoBehaviour
                 pDetected.transform.position - oldPos
             );
         }
+    }
+
+    void CloseUI()
+    {
+        uiOpen = false;
+
+        if (lockedPanel != null)
+            lockedPanel.SetActive(false);
+
+        Time.timeScale = 1f;
     }
 }

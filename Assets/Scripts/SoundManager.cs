@@ -13,11 +13,17 @@ public class SoundManager : MonoBehaviour
     public AudioClip questMusic2;
     public AudioClip questMusic3;
     public AudioClip questMusic4;
-    public AudioClip questMusic5;
     public AudioClip totemNoise;
     public AudioClip ArrowShoot;
     public AudioClip TitleScreenMusic;
+    public AudioClip WeirdHouseMusic;
     public AudioClip GameOverMusic;
+    public AudioClip DrinkPotion;
+    public AudioClip BombExplode;
+    public AudioClip BossMusic;
+    public AudioClip Win;
+
+    public AudioClip ItemGet;
 
     public AudioClip SwordSwing;
     public AudioClip DoorOpen;
@@ -64,6 +70,10 @@ public class SoundManager : MonoBehaviour
         case "GameOver":
             SetMusicState(3);
             break;
+        
+        case "WinScene":
+            SetMusicState(6);
+            break;
 
         case "Scene_VillageOverworld":
         default:
@@ -90,7 +100,6 @@ public void SetMusicState(int state)
             case 1: newClip = questMusic2; break;
             case 2: newClip = questMusic3; break;
             case 3: newClip = questMusic4; break;
-            case 4: newClip = questMusic5; break;
             default: newClip = questMusic1; break;
         }
     }
@@ -102,6 +111,19 @@ public void SetMusicState(int state)
     {
         newClip = GameOverMusic; // Game over music (swap later if you want)
     }
+    else if (state ==4)
+    {
+        newClip = WeirdHouseMusic;
+    }
+    
+    else if (state == 5)
+        {
+            newClip = BossMusic;
+        }
+    else if (state == 6)
+        {
+            newClip = Win;
+        }
 
     if (newClip == null) return;
     if (musicSource.clip == newClip) return;
@@ -151,5 +173,20 @@ public void SetMusicState(int state)
     public void PlayTakeDamage()
     {
         FXSource.PlayOneShot(TakeDamage);
+    }
+
+    public void PlayItemGet()
+    {
+        FXSource.PlayOneShot(ItemGet);
+    }
+
+    public void PlayDrinkPotion()
+    {
+        FXSource.PlayOneShot(DrinkPotion);
+    }
+
+    public void PlayBombExplode()
+    {
+        FXSource.PlayOneShot(BombExplode);
     }
 }

@@ -2,6 +2,16 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    public bool proj = false;
+
+    public GameObject pelletPrefab;
+    public float shootInterval = 2f;
+    public float pelletSpeed = 6f;
+
+    public GameObject BloodPrefab;
+
+    private float shootTimer;
+
     public float speed = 3f;
     public float roamSpeed = 1.5f;
 
@@ -19,44 +29,51 @@ public class Enemy : MonoBehaviour
 
     public Animator anim;
 
-    public float knockbackForce = 5f;
+    public float knockbackF = 5f;
     public float knockbackTime = 0.2f;
 
-    private Vector2 knockbackVelocity;
+    private Vector2 knockbackV;
     private float knockbackTimer;
 
     private Rigidbody2D rb;
 
+    // item drops
+    public GameObject bombDrop;
+    public GameObject arrowDrop;
+    public GameObject healthDrop;
+    public GameObject coinDrop;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        transform.localScale = Vector3.one * 7f;
+        shootTimer = shootInterval;
     }
 
     void FixedUpdate()
     {
-        // =========================
-        // KNOCKBACK
-        // =========================
+        // knockback
         if (knockbackTimer > 0)
         {
-            rb.MovePosition(rb.position + knockbackVelocity * Time.fixedDeltaTime);
+            rb.MovePosition(rb.position + knockbackV * Time.fixedDeltaTime);
             knockbackTimer -= Time.fixedDeltaTime;
             return;
         }
 
-        // =========================
-        // CHASE PLAYER
-        // =========================
+        // chasing
         if (chasing && player != null)
         {
             anim.SetBool("chasing", true);
 
             Vector2 direction = player.position - transform.position;
 
+            Vector3 scale = transform.localScale;
             if (direction.x > 0)
-                transform.localScale = new Vector3(7, 7, 1);
+                scale.x = Mathf.Abs(scale.x);
             else if (direction.x < 0)
-                transform.localScale = new Vector3(-7, 7, 1);
+                scale.x = -Mathf.Abs(scale.x);
+
+            transform.localScale = scale;
 
             Vector2 newPos = Vector2.MoveTowards(
                 rb.position,
@@ -68,9 +85,7 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            // =========================
-            // ROAM
-            // =========================
+            // roaming
             anim.SetBool("chasing", false);
 
             roamTimer -= Time.fixedDeltaTime;
@@ -88,10 +103,13 @@ public class Enemy : MonoBehaviour
 
             Vector2 direction = roamTarget - transform.position;
 
+            Vector3 scale = transform.localScale;
             if (direction.x > 0)
-                transform.localScale = new Vector3(7, 7, 1);
+                scale.x = Mathf.Abs(scale.x);
             else if (direction.x < 0)
-                transform.localScale = new Vector3(-7, 7, 1);
+                scale.x = -Mathf.Abs(scale.x);
+
+            transform.localScale = scale;
 
             Vector2 newRoamPos = Vector2.MoveTowards(
                 rb.position,
@@ -102,14 +120,44 @@ public class Enemy : MonoBehaviour
             rb.MovePosition(newRoamPos);
         }
 
-        // =========================
-        // DEATH
-        // =========================
+        // shoot projectile
+        if (proj && player != null)
+        {
+            shootTimer -= Time.fixedDeltaTime;
+
+            if (shootTimer <= 0f)
+            {
+                ShootPellet();
+                shootTimer = shootInterval;
+            }
+        }
+
+        // death
         if (damageTaken >= health)
         {
             GameManager.Instance.RegisterEnemyKill();
+
+            RollDrop();
             Destroy(gameObject);
         }
+    }
+
+    void ShootPellet()
+    {
+        if (player == null) return;
+
+        Vector2 dir = (player.position - transform.position).normalized;
+
+        GameObject pellet = Instantiate(
+            pelletPrefab,
+            transform.position,
+            transform.rotation
+        );
+
+        Rigidbody2D prb = pellet.GetComponent<Rigidbody2D>();
+        prb.linearVelocity = dir * pelletSpeed;
+
+        Destroy(pellet, 5f);
     }
 
     public void PlayerEntered(Transform playerTransform)
@@ -124,17 +172,37 @@ public class Enemy : MonoBehaviour
         player = null;
     }
 
-  void OnTriggerEnter2D(Collider2D other)
-{
-    if (!other.CompareTag("Weapon") && !other.CompareTag("Arrow")) return;
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!other.CompareTag("Weapon") && !other.CompareTag("ArrowShot")) return;
 
-    SoundManager.Instance.PlayEnemyHit();
+        SoundManager.Instance.PlayEnemyHit();
 
-    Vector2 dir = (transform.position - other.transform.position).normalized;
+        Vector2 dir = (transform.position - other.transform.position).normalized;
 
-    knockbackVelocity = dir * knockbackForce;
-    knockbackTimer = knockbackTime;
+        knockbackV = dir * knockbackF;
+        knockbackTimer = knockbackTime;
 
-    damageTaken++;
-}
+        damageTaken++;
+
+        if (BloodPrefab != null)
+        {
+            Instantiate(BloodPrefab, transform.position, transform.rotation);
+        }
+    }
+
+    void RollDrop()
+    {
+        int roll = Random.Range(0, 4);
+        Vector3 spawnPos = transform.position;
+
+        if (roll == 0)
+            Instantiate(arrowDrop, spawnPos, transform.rotation);
+        else if (roll == 1)
+            Instantiate(bombDrop, spawnPos, transform.rotation);
+        else if (roll == 2)
+            Instantiate(healthDrop, spawnPos, transform.rotation);
+        else if (roll == 3)
+            Instantiate(coinDrop, spawnPos, transform.rotation);
+    }
 }

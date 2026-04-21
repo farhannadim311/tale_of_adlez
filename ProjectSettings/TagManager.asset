@@ -8,6 +8,13 @@ TagManager:
   - Enemy
   - Detection
   - Arrow
+  - health
+  - bomb
+  - arrow
+  - EnemyProj
+  - Explosion
+  - Coin
+  - ArrowShot
   layers:
   - Default
   - TransparentFX

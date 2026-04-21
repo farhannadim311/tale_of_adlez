@@ -3,21 +3,38 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     public GameObject batPrefab;
+    public GameObject crabPrefab;
+    public GameObject golemPrefab;
     public GameObject slimePrefab;
 
-    public float checkInterval = 2f;
+    public bool town = false;
+    public bool proj = false;
 
-    private GameObject currentEnemy;
+    public float checkInterval = 5f;
+
+    private GameObject current;
+    private float timer;
 
     void Start()
     {
         Spawn();
-        InvokeRepeating(nameof(CheckEnemy), checkInterval, checkInterval);
+        timer = checkInterval;
     }
 
-    void CheckEnemy()
+    void Update()
     {
-        if (currentEnemy == null)
+        timer -= Time.deltaTime;
+
+        if (timer <= 0f)
+        {
+            CheckEnemy();
+            timer = checkInterval;
+        }
+    }
+
+    void CheckEnemy() //spawn enemy if none
+    {
+        if (current == null)
         {
             Spawn();
         }
@@ -25,27 +42,26 @@ public class EnemySpawner : MonoBehaviour
 
     void Spawn()
     {
-        GameObject prefabToSpawn = GetEnemyForQuest();
+        GameObject enemyToSpawn = GetEnemy();
 
-        currentEnemy = Instantiate(
-            prefabToSpawn,
+        current = Instantiate(
+            enemyToSpawn,
             transform.position,
             transform.rotation
         );
     }
 
-    GameObject GetEnemyForQuest()
+    GameObject GetEnemy()
     {
-        switch (GameManager.Instance.questNo)
-        {
-            case 0:
-                return batPrefab;
+        if (!town && !proj)
+            return batPrefab;
 
-            case 1:
-                return slimePrefab;
+        if (town && !proj)
+            return crabPrefab;
 
-            default:
-                return batPrefab;
-        }
+        if (!town && proj)
+            return golemPrefab;
+
+        return slimePrefab;
     }
 }
